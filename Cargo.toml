@@ -1,0 +1,11 @@
+[package]
+name = "my-site-backend"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+sqlx = { version = "0.8.5", features = ["runtime-tokio", "tls-rustls", "sqlite", "derive", "macros", "migrate", "time"] }
+time = { version = "0.3.41", features = ["serde"] }
+dotenv = "0.15.0"
+haikunator = "0.1.2"
