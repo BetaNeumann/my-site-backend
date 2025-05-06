@@ -1,0 +1,44 @@
+{
+    "commit-lint.types": [
+        {
+            "label": "Build",
+            "detail": "Development changes related to the build system"
+        },
+        {
+            "label": "CI",
+            "detail": "Development changes related to the continuous integration and deployment system"
+        },
+        {
+            "label": "Docs",
+            "detail": "Documentation changes related to the project"
+        },
+        {
+            "label": "Feat",
+            "detail": "Production changes related to new backward-compatible abilities or functionality"
+        },
+        {
+            "label": "Fix",
+            "detail": "Production changes related to backward-compatible bug fixes"
+        },
+        {
+            "label": "Perf",
+            "detail": "Production changes related to backward-compatible performance improvements"
+        },
+        {
+            "label": "Refactor",
+            "detail": "Development changes related to modifying the codebase"
+        },
+        {
+            "label": "Style",
+            "detail": "Development changes related to styling the codebase"
+        },
+        {
+            "label": "Test",
+            "detail": "Development changes related to tests"
+        },
+        {
+            "label": "Chore",
+            "detail": "Build/configuration changes (no production code changes)"
+        }
+    ]
+}
