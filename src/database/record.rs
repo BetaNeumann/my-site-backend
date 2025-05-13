@@ -1,9 +1,14 @@
-use std::{convert::{From, TryFrom}, fmt::Debug, marker::PhantomData, ops::Deref, str::FromStr};
+use std::{convert::TryFrom, fmt::Debug, marker::PhantomData, ops::Deref, str::FromStr};
 use uuid::Uuid;
 use serde::{Serialize, Deserialize};
+use surrealdb::sql::Id;
 
 
-pub trait Record: Sized {
+pub trait Entity: Sized + Debug + Clone + Serialize {}
+impl<T: Sized + Debug + Clone + Serialize> Entity for T {}
+
+
+pub trait Record: Entity {
     const TABLE_NAME: &'static str;
 
     fn id(&self) -> &RecordId<Self>;
@@ -16,21 +21,6 @@ pub struct RecordId<T: Record> {
     inner: surrealdb::RecordId,
     #[serde(skip)]
     _marker: PhantomData<T>
-}
-
-impl<T: Record> RecordId<T> {
-    pub fn new() -> Self {
-        Self::from(Uuid::new_v4())
-    }
-}
-
-impl<T: Record> From<Uuid> for RecordId<T> {
-    fn from(value: Uuid) -> Self {
-        Self {
-            inner: surrealdb::RecordId::from((T::TABLE_NAME, value)),
-            _marker: PhantomData
-        }
-    }
 }
 
 impl<T: Record> TryFrom<&str> for RecordId<T> {
@@ -49,6 +39,15 @@ impl<T: Record> Deref for RecordId<T> {
 
     fn deref(&self) -> &Self::Target {
         &self.inner
+    }
+}
+
+impl<T: Record> Default for RecordId<T> {
+    fn default() -> Self {  
+        Self {
+            inner: surrealdb::RecordId::from_table_key(T::TABLE_NAME, Id::rand().to_raw()),
+            _marker: PhantomData
+        }
     }
 }
 
