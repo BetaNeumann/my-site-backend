@@ -16,8 +16,8 @@ pub struct ArticleContent {
 impl Record for ArticleContent {
     const TABLE_NAME: &'static str = "article_content";
 
-    fn id(&self) -> &RecordId<Self> {
-        &self.id
+    fn id(&self) -> &RecordIdKey {
+        self.id.key()
     }
 }
 

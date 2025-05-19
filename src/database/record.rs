@@ -1,17 +1,17 @@
-use std::{convert::TryFrom, fmt::Debug, marker::PhantomData, ops::Deref, str::FromStr};
-use uuid::Uuid;
-use serde::{Serialize, Deserialize};
-use surrealdb::sql::Id;
+use std::{convert::From, fmt::Debug, marker::PhantomData, ops::Deref};
+use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use surrealdb::{RecordIdKey, sql::Id};
 
 
-pub trait Entity: Sized + Debug + Clone + Serialize {}
-impl<T: Sized + Debug + Clone + Serialize> Entity for T {}
+pub trait Entity: Sized + Debug + Clone + Serialize + DeserializeOwned {}
+impl<T: Sized + Debug + Clone + Serialize + DeserializeOwned + Send> Entity for T {}
 
 
+pub type TableName = &'static str;
 pub trait Record: Entity {
-    const TABLE_NAME: &'static str;
+    const TABLE_NAME: TableName;
 
-    fn id(&self) -> &RecordId<Self>;
+    fn id(&self) -> &RecordIdKey;
 }
 
 
@@ -23,14 +23,10 @@ pub struct RecordId<T: Record> {
     _marker: PhantomData<T>
 }
 
-impl<T: Record> TryFrom<&str> for RecordId<T> {
-    type Error = uuid::Error;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Ok(Self {
-            inner: surrealdb::RecordId::from((T::TABLE_NAME, Uuid::from_str(value)?)),
-            _marker: PhantomData
-        })
+impl<R: Record, T> From<T> for RecordId<R>
+where surrealdb::RecordIdKey: From<T> {
+    fn from(value: T) -> Self {
+        Self { inner: surrealdb::RecordId::from((R::TABLE_NAME, value)), _marker: PhantomData }
     }
 }
 
@@ -45,7 +41,7 @@ impl<T: Record> Deref for RecordId<T> {
 impl<T: Record> Default for RecordId<T> {
     fn default() -> Self {  
         Self {
-            inner: surrealdb::RecordId::from_table_key(T::TABLE_NAME, Id::rand().to_raw()),
+            inner: surrealdb::RecordId::from((T::TABLE_NAME, Id::ulid().to_raw())),
             _marker: PhantomData
         }
     }
@@ -53,24 +49,23 @@ impl<T: Record> Default for RecordId<T> {
 
 
 #[derive(Debug, Clone, Deserialize)]
-#[serde(untagged)]
+#[serde(untagged, bound = "T: Record")]
 pub enum RecordField<T: Record> {
     Id(RecordId<T>),
     Full(T),
 }
 
 impl<T: Record> RecordField<T> {
-    pub fn id(&self) -> &RecordId<T> {
+    fn id(&self) -> &RecordIdKey {
         match self {
-            RecordField::Id(id) => id,
+            RecordField::Id(id) => id.key(),
             RecordField::Full(full) => full.id()
         }
     }
 }
 
-impl<T: Record + Serialize> Serialize for RecordField<T> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: serde::Serializer {
+impl<T: Record> Serialize for RecordField<T> {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         match self {
             RecordField::Id(id) => id.serialize(serializer),
             RecordField::Full(full) => full.serialize(serializer),

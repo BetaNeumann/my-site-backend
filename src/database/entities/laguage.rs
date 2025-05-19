@@ -11,8 +11,8 @@ pub struct Language {
 impl Record for Language {
     const TABLE_NAME: &'static str = "language";
 
-    fn id(&self) -> &RecordId<Self> {
-        &self.id
+    fn id(&self) -> &RecordIdKey {
+        self.id.key()
     }
 }
 
