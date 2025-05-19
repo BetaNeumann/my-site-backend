@@ -1,10 +1,13 @@
-use std::ops::Deref;
-use surrealdb::{Surreal, engine::remote::ws::Client, method::Content};
+use std::{ops::Deref, convert::Into};
+use surrealdb::{
+    Surreal, RecordIdKey,
+    engine::remote::ws::Client,
+    method::{Content, Select}
+};
+
 use crate::database::Record;
 
-
 pub struct Connection(Surreal<Client>);
-
 impl Connection {
     pub fn init() -> Self {
         Self(Surreal::init())
@@ -15,6 +18,13 @@ impl Connection {
         record: R,
     ) -> Content<'_, Client, Option<R>> {
         self.0.create(R::TABLE_NAME).content(record)
+    }
+
+    pub fn get<R: Record + 'static>(
+        &self,
+        id: impl Into<RecordIdKey>
+    ) -> Select<'_, Client, Option<R>> {
+        self.0.select((R::TABLE_NAME, id))
     }
 }
 
