@@ -14,5 +14,5 @@ pub async fn get_by_id(Path(id): Path<String>) -> Result<Json<e::Language>, AppE
 
     language
         .map(Json)
-        .ok_or(AppError::NotFound(format!("Language with id '{id}' not found")))
+        .ok_or(app_err!(NotFound, "Language with id '{id}' not found"))
 }

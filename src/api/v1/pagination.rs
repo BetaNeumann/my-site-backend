@@ -1,6 +1,7 @@
 use std::convert::TryFrom;
 use serde::{Serialize, Deserialize, de::DeserializeOwned};
 
+use crate::app_err;
 use crate::error::AppError;
 use crate::database::{Connection, Record};
 
@@ -76,7 +77,7 @@ impl TryFrom<u16> for Limit {
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         match value {
             0..=MAX_PAGE_LIMIT => Ok(Self(value)),
-            _ => Err(AppError::Validation(format!("Pagination limit exceeds maximum of {MAX_PAGE_LIMIT}")))
+            _ => Err(app_err!(Validation, "Pagination limit exceeds maximum of {MAX_PAGE_LIMIT}"))
         }
     }
 }
@@ -110,7 +111,7 @@ impl TryFrom<String> for Order {
         match value.to_uppercase().as_str() {
             "ASC" => Ok(Order::Asc),
             "DESC" => Ok(Order::Desc),
-            other => Err(AppError::Validation(format!("Invalid input for order: {other}")))
+            other => Err(app_err!(Validation, "Invalid input for order: {other}"))
         }
     }
 }
