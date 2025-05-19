@@ -1,0 +1,8 @@
+LET $table = type::table($table_name);
+
+RETURN {
+    table: $table_name,
+    total: (SELECT count() FROM $table GROUP ALL)[0].count,
+    first_id: <string>meta::id((SELECT id FROM ONLY $table ORDER BY id ASC LIMIT 1).id),
+    last_id: <string>meta::id((SELECT id FROM ONLY $table ORDER BY id DESC LIMIT 1).id)
+}
