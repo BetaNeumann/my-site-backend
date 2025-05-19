@@ -40,5 +40,8 @@
             "label": "Chore",
             "detail": "Build/configuration changes (no production code changes)"
         }
+    ],
+    "rust-analyzer.diagnostics.disabled": [
+        "needless_return"
     ]
 }
